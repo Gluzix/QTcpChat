@@ -14,6 +14,8 @@ private slots:
 	void OnOkButtonClick();
 	void OnCancelButtonClick();
 
+	void reject();
+
 signals:
 	void SendName(QString Name);
 	void SendExit();

@@ -14,6 +14,12 @@ NameAccepter::~NameAccepter()
 {
 }
 
+void NameAccepter::reject()
+{
+	emit SendExit();
+	QDialog::reject();
+}
+
 void NameAccepter::OnNameEditChange(QString text)
 {
 	if (text.isEmpty())
@@ -28,13 +34,11 @@ void NameAccepter::OnNameEditChange(QString text)
 
 void NameAccepter::OnOkButtonClick()
 {
-	QString Name = ui.nameEdit->text();
-	emit SendName(Name);
-	this->close();
+	QString name = ui.nameEdit->text();
+	emit SendName(name);
 }
 
 void NameAccepter::OnCancelButtonClick()
 {
 	emit SendExit();
-	this->close();
 }

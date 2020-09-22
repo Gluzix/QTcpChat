@@ -7,22 +7,24 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui.sendButton, SIGNAL(clicked()), this, SLOT(OnSendButtonClick()));
 	connect(&client, SIGNAL(PassDataToMainWindow(QString)), this, SLOT(GetData(QString)));
 	connect(&nameAccepterDialog, SIGNAL(SendExit()), this, SLOT(CloseApplication()));
-	connect(&nameAccepterDialog, SIGNAL(SendName(QString)), this, SLOT(CloseApplication(GetName(QString))));
+	connect(&nameAccepterDialog, SIGNAL(SendName(QString)), this, SLOT(GetName(QString)));
 }
 
 void  MainWindow::ShowNameAccepter()
 {
-	nameAccepterDialog.exec();
+	this->setEnabled(false);
+	nameAccepterDialog.show();
 }
 
 void MainWindow::GetData(QString data)
 {
-	ui.incomingEdit->append(QString("Friend: " + data));
+	ui.incomingEdit->append(QString(data));
 }
 
 void MainWindow::CloseApplication()
 {
 	nameAccepterDialog.close();
+	this->setEnabled(true);
 	QMainWindow::close();
 	QApplication::quit();
 }
@@ -30,6 +32,8 @@ void MainWindow::CloseApplication()
 void MainWindow::GetName(QString name)
 {
 	client.SetUserName(name);
+	nameAccepterDialog.close();
+	this->setEnabled(true);
 }
 
 void MainWindow::OnSendButtonClick()
