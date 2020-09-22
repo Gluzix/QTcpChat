@@ -6,14 +6,15 @@
 Server::Server()
 {
 	TcpServer.listen(QHostAddress::Any, 4242);
-	connect(&TcpServer, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
+	connect(&TcpServer, SIGNAL(newConnection()), this, SLOT(OnNewConnection()));
 }
 
 void Server::OnNewConnection()
 {
 	QTcpSocket *clientSocket = TcpServer.nextPendingConnection();
-	connect(clientSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
-	connect(clientSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
+
+	connect(clientSocket, SIGNAL(readyRead()), this, SLOT(OnReadyRead()));
+	connect(clientSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(OnSocketStateChanged(QAbstractSocket::SocketState)));
 
 	Sockets.push_back(clientSocket);
 	for (QTcpSocket* socket : Sockets) {
@@ -37,7 +38,6 @@ void Server::OnReadyRead()
 	qDebug() << datas;
 	for (QTcpSocket* socket : Sockets) {
 		if (socket != sender)
-			//socket->write(QByteArray::fromStdString(sender->peerAddress().toString().toStdString() + ": " + datas.toStdString()));
 			socket->write(datas);
 	}
 }
