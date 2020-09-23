@@ -9,25 +9,43 @@ Client::Client()
 	connect(&Socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 }
 
-void Client::onReadyRead()	
+void Client::onReadyRead()
 {
 	QByteArray data = Socket.readAll();
-	QString dataStr = QString(data);
-	emit PassDataToMainWindow(dataStr);
+	Message *msg = reinterpret_cast<Message*>(data.data());
+	if (msg->code == MESSAGE_SEND)
+	{
+		QString data = QString::fromStdString(msg->data);
+		emit PassDataToConversation(data);
+	}
+	else if (msg->code == ID_SEND)
+	{
+		QString data = QString::fromStdString(msg->data);
+		emit PassIdToHostList(data);
+	}
 }
 
-void Client::SendMessage(QString message)
+void Client::GetMessage(QString message)
+{
+	QString messageToSend = Name + ": " + message;
+	SendPacket(MESSAGE_SEND, messageToSend);
+}
+
+void Client::SendPacket(int code, QString data)
 {
 	if (Socket.isWritable())
 	{
-		QString messageToSend = Name + ": " + message;
-		Socket.write(messageToSend.toStdString().c_str());
+		Message msg;
+		msg.code = code;
+		msg.data = data.toStdString();
+		Socket.write(reinterpret_cast<char*>(&msg), sizeof(msg));
 	}
 }
 
 void Client::SetUserName(QString name)
 {
 	Name = name;
+	SendPacket(NAME_SEND, Name);
 }
 
 Client::~Client()

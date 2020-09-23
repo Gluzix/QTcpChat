@@ -4,21 +4,25 @@ MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
-	connect(ui.sendButton, SIGNAL(clicked()), this, SLOT(OnSendButtonClick()));
-	connect(&client, SIGNAL(PassDataToMainWindow(QString)), this, SLOT(GetData(QString)));
+	connect(ui.talkButton, SIGNAL(clicked()), this, SLOT(OnTalkButtonClick()));
+	connect(&client, SIGNAL(PassDataToConversation(QString)), &conversationDialog, SLOT(GetData(QString)));
+	connect(&conversationDialog, SIGNAL(PassDataToSend(QString)), &client, SLOT(GetMessage(QString)));
+
 	connect(&nameAccepterDialog, SIGNAL(SendExit()), this, SLOT(CloseApplication()));
 	connect(&nameAccepterDialog, SIGNAL(SendName(QString)), this, SLOT(GetName(QString)));
+
+	connect(&client, SIGNAL(PassIdToHostList(QString)), this, SLOT(AppendNewHostToList(QString)));
 }
 
-void  MainWindow::ShowNameAccepter()
+void MainWindow::ShowNameAccepter()
 {
 	this->setEnabled(false);
 	nameAccepterDialog.show();
 }
 
-void MainWindow::GetData(QString data)
+void MainWindow::OnTalkButtonClick()
 {
-	ui.incomingEdit->append(QString(data));
+
 }
 
 void MainWindow::CloseApplication()
@@ -36,10 +40,7 @@ void MainWindow::GetName(QString name)
 	this->setEnabled(true);
 }
 
-void MainWindow::OnSendButtonClick()
+void MainWindow::AppendNewHostToList(QString host)
 {
-	QString Message = ui.outcomingEdit->toPlainText();
-	ui.outcomingEdit->clear();
-	ui.incomingEdit->append(QString("You: " + Message));
-	client.SendMessage(Message);
+	ui.connectedListWidget->addItem(host);
 }
