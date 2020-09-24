@@ -67,7 +67,7 @@ void Server::OnNewConnection()
 
 	Host host(clientSocket, "", number);
 
-	SendPacket(clientSocket, PENDING_MSG); //Sending to new host, all connected hosts
+	SendPacket(clientSocket, CONNECTED_HOSTS); //Sending to new host, all connected hosts
 
 
 	Hosts.push_back(host);
@@ -77,6 +77,19 @@ bool Server::CheckIfIdIsAvailable(int id)
 {
 	bool retState = true;
 	for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+	{
+		if (it->GetId() == id)
+		{
+			retState = false;
+		}
+	}
+	return retState;
+}
+
+bool Server::CheckIfChannelIdIsAvailable(int id)
+{
+	bool retState = true;
+	for (QList<Channel>::Iterator it = Channels.begin(); it < Channels.end(); ++it)
 	{
 		if (it->GetId() == id)
 		{
@@ -100,6 +113,20 @@ void Server::SendPacket(QTcpSocket *socket, int code, QString data)
 	}
 }
 
+void Server::SendPacket(QTcpSocket *socket, int code, QVector<QString> &data)
+{
+	if (socket->isWritable())
+	{
+		Message<QVector<QString>> msg;
+		msg.code = code;
+		msg.data = data;
+		QByteArray bytes;
+		QDataStream stream(&bytes, QIODevice::WriteOnly);
+		stream << msg;
+		socket->write(bytes);
+	}
+}
+
 void Server::SendPacket(QTcpSocket *socket, int code)
 {
 	if (socket->isWritable())
@@ -108,7 +135,7 @@ void Server::SendPacket(QTcpSocket *socket, int code)
 		msg.code = code;
 		for (QList<Host>::iterator it = Hosts.begin(); it < Hosts.end(); ++it)
 		{
-			QString data = it->GetName() + "(" + QString::number(it->GetId()) + ")";
+			QString data = it->GetName() + ":" + QString::number(it->GetId());
 			msg.data.push_back(data);
 		}
 		QByteArray bytes;
@@ -145,17 +172,17 @@ void Server::OnReadyRead()
 
 	if (code == MESSAGE_SEND)
 	{
-		QString message;
-		stream >> message;
+		//QString message;
+		//stream >> message;
 
-		for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
-		{
-			QTcpSocket *receiver = it->GetSocketHandler();
-			if (receiver != sender)
-			{
-				SendPacket(receiver, MESSAGE_SEND, message);
-			}
-		}
+		//for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+		//{
+		//	QTcpSocket *receiver = it->GetSocketHandler();
+		//	if (receiver != sender)
+		//	{
+		//		SendPacket(receiver, MESSAGE_SEND, message);
+		//	}
+		//}
 	}
 	else if (code == NAME_SEND)
 	{
@@ -181,12 +208,41 @@ void Server::OnReadyRead()
 				QTcpSocket* receiver = it->GetSocketHandler();
 				if (receiver != sender)
 				{
-					SendPacket(receiver, ID_SEND, message + "(" + QString::number(number) + ")");
+					SendPacket(receiver, ID_SEND, message + ":" + QString::number(number));
 				}
 			}
 		}
 	}
+	else if (code == PENDING_MSG)
+	{
+		bool bIfExist = false;
+		for (QList<Channel>::iterator it = Channels.begin(); it < Channels.end(); ++it)
+		{
+			if (it->CheckHost(sender))
+			{
+				bIfExist = true;
+				QTcpSocket *receiver = it->GetReceiver(sender);
+				if (!it->GetMessages().isEmpty())
+				{
+					SendPacket(receiver, PENDING_MSG, it->GetMessages());
+					break;
+				}
+			}
+		}
 
+		int number = 0;
+		do
+		{
+			number = QRandomGenerator::global()->bounded(100000, 200000);
+		} while (!CheckIfChannelIdIsAvailable(number));
+
+		if (!bIfExist)
+		{
+			QString 
+			Channel channel(number);
+			channel.AddHosts()
+		}
+	}
 }
 
 Server::~Server()

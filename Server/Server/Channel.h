@@ -7,13 +7,20 @@
 class Channel : public QObject
 {
 public:
-	Channel();
+	Channel(int id);
 	~Channel();
-	void ReadPendingMessages(Host *which);
-	void SendMessages();
+	void AddHosts(Host *host);
+	void AddMessageToConversation(QString name, QString message);
+	QVector<QString>& GetMessages();
+	bool CheckHost(QTcpSocket *socket);
+	QTcpSocket* GetReceiver(QTcpSocket *sender);
+	int GetId() 
+	{
+		return ConversationID;
+	}
 
 private:
 	int ConversationID;
 	QVector<Host*> HostsVector;
-	std::vector<std::string> conversation;
+	QVector<QString> conversation;
 };

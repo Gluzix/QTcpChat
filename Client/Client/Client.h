@@ -4,7 +4,8 @@
 const int NAME_SEND = 150;
 const int MESSAGE_SEND = 151;
 const int ID_SEND = 152;
-const int PENDING_MSG = 153;
+const int CONNECTED_HOSTS = 153;
+const int PENDING_MSG = 154;
 const int CONFIRM = 180;
 
 template <class type>
@@ -32,7 +33,8 @@ signals:
 private:
 	void SendPacket(int code, QString data);
 
-	QTcpSocket  Socket;
-	QString		Name;
+	QTcpSocket		Socket;
+	QString			Name;
+	QVector<int>	connectedIds;
 };
 

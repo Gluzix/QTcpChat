@@ -44,15 +44,19 @@ void Client::onReadyRead()
 	{
 		QString data;
 		stream >> data;
-		emit PassIdToHostList(data);
+		QStringList list;
+		list = data.split(":");
+		emit PassIdToHostList(list[0] + "(" + list[1] + ")");
 	}
-	else if (code == PENDING_MSG)
+	else if (code == CONNECTED_HOSTS)
 	{
 		QVector<QString> vect;
 		stream >> vect;
 		for (QVector<QString>::iterator it = vect.begin(); it < vect.end(); ++it)
 		{
-			emit PassIdToHostList(*it);
+			QStringList list;
+			list = it->split(":");
+			emit PassIdToHostList(list[0]+"("+list[1]+")");
 		}
 	}
 }
