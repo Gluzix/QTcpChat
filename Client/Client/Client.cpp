@@ -1,7 +1,24 @@
 #include <QDebug>
 #include <QtNetwork/QHostAddress>
 #include <QtCore/QTextCodec>
+#include <qdatastream.h>
 #include "Client.h"
+
+QDataStream & operator << (QDataStream &stream, const Message<QString>& obj)
+{
+	return stream << (short)obj.code << (QString)obj.data;
+}
+
+QDataStream & operator >> (QDataStream &stream, Message<QString>& obj)
+{
+	short code;
+	stream >> code;
+	obj.code = code;
+	QString str;
+	stream >> str;
+	obj.data = str;
+	return stream;
+}
 
 Client::Client()
 {
@@ -9,25 +26,61 @@ Client::Client()
 	connect(&Socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 }
 
-void Client::onReadyRead()	
+void Client::onReadyRead()
 {
 	QByteArray data = Socket.readAll();
-	QString dataStr = QString(data);
-	emit PassDataToMainWindow(dataStr);
+
+	QDataStream stream(data);
+	short code;
+	stream >> code;
+
+	if (code == MESSAGE_SEND)
+	{
+		QString data;
+		stream >> data;
+		emit PassDataToConversation(data);
+	}
+	else if (code == ID_SEND)
+	{
+		QString data;
+		stream >> data;
+		emit PassIdToHostList(data);
+	}
+	else if (code == PENDING_MSG)
+	{
+		QVector<QString> vect;
+		stream >> vect;
+		for (QVector<QString>::iterator it = vect.begin(); it < vect.end(); ++it)
+		{
+			emit PassIdToHostList(*it);
+		}
+	}
 }
 
-void Client::SendMessage(QString message)
+void Client::GetMessage(QString message)
+{
+	QString messageToSend = Name + ": " + message;
+	SendPacket(MESSAGE_SEND, messageToSend);
+}
+
+void Client::SendPacket(int code, QString data)
 {
 	if (Socket.isWritable())
 	{
-		QString messageToSend = Name + ": " + message;
-		Socket.write(messageToSend.toStdString().c_str());
+		Message<QString> msg;
+		msg.code = code;
+		msg.data = data;
+		QByteArray bytes;
+		QDataStream stream(&bytes, QIODevice::WriteOnly);
+		stream << msg;
+		Socket.write(bytes);
 	}
 }
 
 void Client::SetUserName(QString name)
 {
 	Name = name;
+	SendPacket(NAME_SEND, Name);
 }
 
 Client::~Client()

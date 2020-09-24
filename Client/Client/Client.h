@@ -1,6 +1,18 @@
 #include <QDebug>
 #include <QtNetwork/QTcpSocket>
 
+const int NAME_SEND = 150;
+const int MESSAGE_SEND = 151;
+const int ID_SEND = 152;
+const int PENDING_MSG = 153;
+const int CONFIRM = 180;
+
+template <class type>
+struct Message {
+	short code;
+	type data;
+};
+
 class Client : public QObject
 {
 	Q_OBJECT
@@ -10,13 +22,16 @@ public:
 
 public slots:
 	void onReadyRead();
-	void SendMessage(QString message);
+	void GetMessage(QString message);
 	void SetUserName(QString name);
 
 signals:
-	void PassDataToMainWindow(QString data);
+	void PassDataToConversation(QString data);
+	void PassIdToHostList(QString host);
 
 private:
+	void SendPacket(int code, QString data);
+
 	QTcpSocket  Socket;
 	QString		Name;
 };

@@ -2,6 +2,7 @@
 #include "Client.h"
 #include "NameAccepter.h"
 #include "ui_MainWindow.h"
+#include "ConversationDialog.h"
 
 class MainWindow : public QMainWindow
 {
@@ -12,15 +13,16 @@ public:
 	void ShowNameAccepter();
 
 public slots:
-	void GetData(QString data);
 	void CloseApplication();
 	void GetName(QString name);
+	void AppendNewHostToList(QString host);
 
 private slots:
-	void OnSendButtonClick();
+	void OnTalkButtonClick();
 
 private:
 	Ui::MainWindowClass ui;
 	Client client;
 	NameAccepter nameAccepterDialog;
+	ConversationDialog conversationDialog;
 };
