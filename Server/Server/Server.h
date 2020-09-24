@@ -7,17 +7,17 @@
 const int NAME_SEND = 150;
 const int MESSAGE_SEND = 151;
 const int ID_SEND = 152;
+const int PENDING_MSG = 153;
 const int CONFIRM = 180;
 
-#pragma pack(push, 1)
+template<class type>
 struct Message {
-	//Message(int cd, QString d):
-	//	code(cd),
-	//	data(d){}
 	short code;
-	std::string data;
+	type data;
 };
-#pragma pack(pop)
+
+//QDataStream & operator << (QDataStream &stream, const PendingMessages& obj);
+//QDataStream & operator >> (QDataStream &stream, const PendingMessages& obj);
 
 class Server : public QObject
 {
@@ -25,7 +25,6 @@ class Server : public QObject
 public:
 	Server();
 	~Server();
-
 public slots:
 	void OnNewConnection();
 	void OnSocketStateChanged(QAbstractSocket::SocketState socketState);
@@ -33,6 +32,7 @@ public slots:
 private:
 	bool CheckIfIdIsAvailable(int id);
 	void SendPacket(QTcpSocket *socket, int code, QString data);
+	void SendPacket(QTcpSocket *socket, int code);
 
 	QTcpServer  TcpServer;
 	QList<Host>  Hosts;

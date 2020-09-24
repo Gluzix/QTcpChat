@@ -1,7 +1,24 @@
 #include <QDebug>
 #include <QtNetwork/QHostAddress>
 #include <QtCore/QTextCodec>
+#include <qdatastream.h>
 #include "Client.h"
+
+QDataStream & operator << (QDataStream &stream, const Message<QString>& obj)
+{
+	return stream << (short)obj.code << (QString)obj.data;
+}
+
+QDataStream & operator >> (QDataStream &stream, Message<QString>& obj)
+{
+	short code;
+	stream >> code;
+	obj.code = code;
+	QString str;
+	stream >> str;
+	obj.data = str;
+	return stream;
+}
 
 Client::Client()
 {
@@ -12,16 +29,31 @@ Client::Client()
 void Client::onReadyRead()
 {
 	QByteArray data = Socket.readAll();
-	Message *msg = reinterpret_cast<Message*>(data.data());
-	if (msg->code == MESSAGE_SEND)
+
+	QDataStream stream(data);
+	short code;
+	stream >> code;
+
+	if (code == MESSAGE_SEND)
 	{
-		QString data = QString::fromStdString(msg->data);
+		QString data;
+		stream >> data;
 		emit PassDataToConversation(data);
 	}
-	else if (msg->code == ID_SEND)
+	else if (code == ID_SEND)
 	{
-		QString data = QString::fromStdString(msg->data);
+		QString data;
+		stream >> data;
 		emit PassIdToHostList(data);
+	}
+	else if (code == PENDING_MSG)
+	{
+		QVector<QString> vect;
+		stream >> vect;
+		for (QVector<QString>::iterator it = vect.begin(); it < vect.end(); ++it)
+		{
+			emit PassIdToHostList(*it);
+		}
 	}
 }
 
@@ -35,10 +67,13 @@ void Client::SendPacket(int code, QString data)
 {
 	if (Socket.isWritable())
 	{
-		Message msg;
+		Message<QString> msg;
 		msg.code = code;
-		msg.data = data.toStdString();
-		Socket.write(reinterpret_cast<char*>(&msg), sizeof(msg));
+		msg.data = data;
+		QByteArray bytes;
+		QDataStream stream(&bytes, QIODevice::WriteOnly);
+		stream << msg;
+		Socket.write(bytes);
 	}
 }
 

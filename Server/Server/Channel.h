@@ -2,19 +2,18 @@
 #include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
 #include <vector>
+#include "Host.h"
 
 class Channel : public QObject
 {
 public:
 	Channel();
 	~Channel();
-	void SaveConversation();//Save conversation and id
-	void ReadConversation();//Read conversation and id
+	void ReadPendingMessages(Host *which);
+	void SendMessages();
 
 private:
 	int ConversationID;
-	QTcpSocket* FirstHost;
-	QTcpSocket* SecondHost;
+	QVector<Host*> HostsVector;
 	std::vector<std::string> conversation;
-	//QTcpServer klasa posiada cos takiego jak SetRead/WriteChannel. Byæ mo¿e dziêki temu, bêdê móg³ w ³atwiejszy sposób obs³u¿yæ kana³y
 };

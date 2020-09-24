@@ -2,7 +2,40 @@
 #include <QtNetwork/QHostAddress>
 #include <QtNetwork/QAbstractSocket>
 #include <QtCore/QRandomGenerator>
+#include <qdatastream.h>
 #include "Server.h"
+
+QDataStream & operator << (QDataStream &stream, const Message<QString>& obj)
+{
+	return stream << (short)obj.code << (QString)obj.data;
+}
+
+QDataStream & operator >> (QDataStream &stream, Message<QString>& obj)
+{
+	short code;
+	stream >> code;
+	obj.code = code;
+	QString str;
+	stream >> str;
+	obj.data = str;
+	return stream;
+}
+
+QDataStream & operator << (QDataStream &stream, const Message<QVector<QString>>& obj)
+{
+	return stream << static_cast<short>(obj.code) << static_cast<QVector<QString>>(obj.data);
+}
+
+QDataStream & operator >> (QDataStream &stream, Message<QVector<QString>>& obj)
+{
+	short code;
+	stream >> code;
+	obj.code = code;
+	QVector<QString> str;
+	stream >> str;
+	obj.data = str;
+	return stream;
+}
 
 Server::Server()
 {
@@ -34,10 +67,8 @@ void Server::OnNewConnection()
 
 	Host host(clientSocket, "", number);
 
-	for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
-	{
-		SendPacket(clientSocket, ID_SEND, it->GetName() + "(" + QString::number(it->GetId()) + ")" );
-	}
+	SendPacket(clientSocket, PENDING_MSG); //Sending to new host, all connected hosts
+
 
 	Hosts.push_back(host);
 }
@@ -59,11 +90,31 @@ void Server::SendPacket(QTcpSocket *socket, int code, QString data)
 {
 	if (socket->isWritable())
 	{
-		Message msg;
+		Message<QString> msg;
 		msg.code = code;
-		msg.data = data.toStdString();
-		socket->write(reinterpret_cast<char*>(&msg), sizeof(msg));
-		socket->waitForBytesWritten();
+		msg.data = data;
+		QByteArray bytes;
+		QDataStream stream(&bytes, QIODevice::WriteOnly);
+		stream << msg;
+		socket->write(bytes);
+	}
+}
+
+void Server::SendPacket(QTcpSocket *socket, int code)
+{
+	if (socket->isWritable())
+	{
+		Message<QVector<QString>> msg;
+		msg.code = code;
+		for (QList<Host>::iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+		{
+			QString data = it->GetName() + "(" + QString::number(it->GetId()) + ")";
+			msg.data.push_back(data);
+		}
+		QByteArray bytes;
+		QDataStream stream(&bytes, QIODevice::WriteOnly);
+		stream << msg;
+		socket->write(bytes);
 	}
 }
 
@@ -86,31 +137,40 @@ void Server::OnSocketStateChanged(QAbstractSocket::SocketState socketState)
 void Server::OnReadyRead()
 {
 	QTcpSocket* sender = static_cast<QTcpSocket*>(QObject::sender());
-	QByteArray data = sender->readAll();
-	Message *msg = reinterpret_cast<Message*>(data.data());
 
-	if (msg->code == MESSAGE_SEND)
+	QByteArray data = sender->readAll();
+	QDataStream stream(data);
+	short code;
+	stream >> code;
+
+	if (code == MESSAGE_SEND)
 	{
+		QString message;
+		stream >> message;
+
 		for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
 		{
 			QTcpSocket *receiver = it->GetSocketHandler();
 			if (receiver != sender)
 			{
-				SendPacket(receiver, MESSAGE_SEND, data);
+				SendPacket(receiver, MESSAGE_SEND, message);
 			}
 		}
 	}
-	else if (msg->code == NAME_SEND)
+	else if (code == NAME_SEND)
 	{
-		Message msgBack;
+		QString message;
+		stream >> message;
+		Message<QString> msgBack;
 		int number = 0;
 		for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
 		{
 			QTcpSocket *receiver = it->GetSocketHandler();
 			if (receiver == sender)
 			{
+				
 				number = it->GetId();
-				it->SetName(QString::fromStdString(msg->data));
+				it->SetName(message);
 			}
 		}
 
@@ -121,7 +181,7 @@ void Server::OnReadyRead()
 				QTcpSocket* receiver = it->GetSocketHandler();
 				if (receiver != sender)
 				{
-					SendPacket(receiver, ID_SEND, QString::fromStdString(msg->data) + "(" + QString::number(number) + ")");
+					SendPacket(receiver, ID_SEND, message + "(" + QString::number(number) + ")");
 				}
 			}
 		}
