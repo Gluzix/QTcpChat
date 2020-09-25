@@ -7,6 +7,11 @@
 class Channel : public QObject
 {
 public:
+	Channel() {};
+	Channel(const Channel &obj)
+	{
+
+	}
 	Channel(int id);
 	~Channel();
 	void AddHosts(Host *host);

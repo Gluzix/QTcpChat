@@ -4,6 +4,7 @@ ConversationDialog::ConversationDialog(QDialog *parent)
 	: QDialog(parent)
 {
 	ui.setupUi(this);
+	connect(ui.sendButton, SIGNAL(clicked()), this, SLOT(OnSendButtonClick()));
 }
 
 ConversationDialog::~ConversationDialog()

@@ -59,6 +59,15 @@ void Client::onReadyRead()
 			emit PassIdToHostList(list[0]+"("+list[1]+")");
 		}
 	}
+	else if (code == PENDING_MSG)
+	{
+		QVector<QString> vect;
+		stream >> vect;
+		for (QVector<QString>::iterator it = vect.begin(); it < vect.end(); ++it)
+		{
+			emit PassDataToConversation(data);
+		}
+	}
 }
 
 void Client::GetMessage(QString message)
@@ -85,6 +94,11 @@ void Client::SetUserName(QString name)
 {
 	Name = name;
 	SendPacket(NAME_SEND, Name);
+}
+
+void Client::GetIdToSend(QString id)
+{
+	SendPacket(PENDING_MSG, id);
 }
 
 Client::~Client()

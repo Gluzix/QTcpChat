@@ -2,7 +2,6 @@
 #include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
 #include <qlist.h>
-#include "Host.h"
 #include "Channel.h"
 
 const int NAME_SEND = 150;
@@ -37,5 +36,5 @@ private:
 
 	QTcpServer  TcpServer;
 	QList<Host>  Hosts;
-	QList<Channel> Channels;
+	QList<Channel*> Channels;
 };

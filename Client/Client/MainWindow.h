@@ -12,6 +12,10 @@ public:
 	MainWindow(QWidget *parent = Q_NULLPTR);
 	void ShowNameAccepter();
 
+
+signals:
+	void PassIdToSend(QString id);
+
 public slots:
 	void CloseApplication();
 	void GetName(QString name);

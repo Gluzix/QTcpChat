@@ -12,6 +12,8 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(&nameAccepterDialog, SIGNAL(SendName(QString)), this, SLOT(GetName(QString)));
 
 	connect(&client, SIGNAL(PassIdToHostList(QString)), this, SLOT(AppendNewHostToList(QString)));
+
+	connect(this, SIGNAL(PassIdToSend(QString)), &client, SLOT(GetIdToSend(QString)));
 }
 
 void MainWindow::ShowNameAccepter()
@@ -22,7 +24,10 @@ void MainWindow::ShowNameAccepter()
 
 void MainWindow::OnTalkButtonClick()
 {
-
+	QString text = ui.connectedListWidget->currentItem()->text();
+	QStringList id = text.split(QRegExp("[(,)]"));
+	emit PassIdToSend(id[1]);
+	conversationDialog.show();
 }
 
 void MainWindow::CloseApplication()

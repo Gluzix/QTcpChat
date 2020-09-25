@@ -25,6 +25,7 @@ public slots:
 	void onReadyRead();
 	void GetMessage(QString message);
 	void SetUserName(QString name);
+	void GetIdToSend(QString id);
 
 signals:
 	void PassDataToConversation(QString data);
