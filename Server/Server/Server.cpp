@@ -234,12 +234,12 @@ void Server::OnReadyRead()
 			if ((*it)->CheckHost(sender))
 			{
 				bIfExist = true;
-				QTcpSocket *receiver = (*it)->GetReceiver(sender);
-				if (!(*it)->GetMessages().isEmpty())
-				{
-					SendPacket(receiver, PENDING_MSG, (*it)->GetMessages());
-					break;
-				}
+				//QTcpSocket *receiver = (*it)->GetReceiver(sender);
+				//if (!(*it)->GetMessages().isEmpty())
+				//{
+				//	SendPacket(receiver, PENDING_MSG, (*it)->GetMessages());
+				//	break;
+				//}
 			}
 		}
 

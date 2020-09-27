@@ -13,6 +13,7 @@ public slots:
 
 private slots:
 	void OnSendButtonClick();
+	void reject();
 
 signals:
 	void PassDataToSend(QString messsage);
