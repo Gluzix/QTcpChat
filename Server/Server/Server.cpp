@@ -172,33 +172,27 @@ void Server::OnReadyRead()
 
 	if (code == MESSAGE_SEND)
 	{
-		QString message;
 		QVector<QString> vector;
 		stream >> vector;
 		int id = vector[0].toInt();
-		message = vector[1];
 
 		for (QList<Channel*>::iterator it = Channels.begin(); it < Channels.end(); ++it)
 		{
 			if ((*it)->CheckHost(sender, id))
 			{
+				for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+				{
+					QTcpSocket *recv = it->GetSocketHandler();
+					if (recv == sender)
+					{
+						vector[0] = QString::number(it->GetId());
+					}
+				}
 				QTcpSocket* receiver = (*it)->GetReceiver(sender);
-				SendPacket(receiver, MESSAGE_SEND, message);
+				SendPacket(receiver, MESSAGE_SEND, vector);
 				break;
 			}
 		}
-
-		//QString message;
-		//stream >> message;
-
-		//for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
-		//{
-		//	QTcpSocket *receiver = it->GetSocketHandler();
-		//	if (receiver != sender)
-		//	{
-		//		SendPacket(receiver, MESSAGE_SEND, message);
-		//	}
-		//}
 	}
 	else if (code == NAME_SEND)
 	{

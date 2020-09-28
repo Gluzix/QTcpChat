@@ -5,8 +5,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
 	ui.setupUi(this);
 	connect(ui.talkButton, SIGNAL(clicked()), this, SLOT(OnTalkButtonClick()));
-	connect(&client, SIGNAL(PassDataToConversation(QString)), &conversationDialog, SLOT(GetData(QString)));
-	connect(&conversationDialog, SIGNAL(PassDataToSend(QString, QString)), &client, SLOT(GetMessage(QString, QString)));
+
+	connect(&client, SIGNAL(PassDataToConversation(QString, QString)), this, SLOT(GetDataAndId(QString, QString)));
 
 	connect(&nameAccepterDialog, SIGNAL(SendExit()), this, SLOT(CloseApplication()));
 	connect(&nameAccepterDialog, SIGNAL(SendName(QString)), this, SLOT(GetName(QString)));
@@ -14,6 +14,11 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(&client, SIGNAL(PassIdToHostList(QString)), this, SLOT(AppendNewHostToList(QString)));
 
 	connect(this, SIGNAL(PassIdToSend(QString)), &client, SLOT(GetIdToSend(QString)));
+}
+
+MainWindow::~MainWindow()
+{
+	qDeleteAll(dialogVector.begin(), dialogVector.end());
 }
 
 void MainWindow::ShowNameAccepter()
@@ -24,11 +29,31 @@ void MainWindow::ShowNameAccepter()
 
 void MainWindow::OnTalkButtonClick()
 {
-	QString text = ui.connectedListWidget->currentItem()->text();
-	QStringList id = text.split(QRegExp("[(,)]"));
-	emit PassIdToSend(id[1]);
-	conversationDialog.SetConversationId(id[1]);
-	conversationDialog.show();
+	if (ui.connectedListWidget->currentRow() != -1)
+	{
+		QString text = ui.connectedListWidget->currentItem()->text();
+		QStringList id = text.split(QRegExp("[(,)]"));
+		emit PassIdToSend(id[1]);
+		bool bIfFound = false;
+		for (QVector<ConversationDialog*>::iterator it = dialogVector.begin(); it < dialogVector.end(); ++it)
+		{
+			if ((*it)->GetId() == id[1])
+			{			
+				bIfFound = true;
+				(*it)->show();
+				break;
+			}
+		}
+
+		if (!bIfFound)
+		{
+			ConversationDialog *dialog = new ConversationDialog();
+			connect(dialog, SIGNAL(PassDataToSend(QString, QString)), &client, SLOT(GetMessage(QString, QString)));
+			dialog->SetConversationId(id[1]);
+			dialog->show();
+			dialogVector.push_back(dialog);
+		}
+	}
 }
 
 void MainWindow::CloseApplication()
@@ -50,4 +75,26 @@ void MainWindow::GetName(QString name)
 void MainWindow::AppendNewHostToList(QString host)
 {
 	ui.connectedListWidget->addItem(host);
+}
+
+void MainWindow::GetDataAndId(QString data, QString id)
+{
+	bool bIfFound = false;
+	for (QVector<ConversationDialog*>::iterator it = dialogVector.begin(); it < dialogVector.end(); ++it)
+	{
+		if ((*it)->GetId() == id)
+		{
+			bIfFound = true;
+			(*it)->SetData(data);
+		}
+	}
+
+	if (!bIfFound)
+	{
+		ConversationDialog *dialog = new ConversationDialog();
+		connect(dialog, SIGNAL(PassDataToSend(QString, QString)), &client, SLOT(GetMessage(QString, QString)));
+		dialog->SetConversationId(id);
+		dialog->SetData(data);
+		dialogVector.push_back(dialog);
+	}
 }

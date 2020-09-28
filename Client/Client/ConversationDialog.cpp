@@ -12,7 +12,7 @@ ConversationDialog::~ConversationDialog()
 {
 }
 
-void ConversationDialog::GetData(QString data)
+void ConversationDialog::SetData(QString data)
 {
 	QDateTime time;
 	QString date = time.currentDateTime().toString();
@@ -31,7 +31,5 @@ void ConversationDialog::OnSendButtonClick()
 
 void ConversationDialog::reject()
 {
-	ui.incomingEdit->clear();
-	ui.outcomingEdit->clear();
 	QDialog::reject();
 }

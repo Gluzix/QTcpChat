@@ -28,7 +28,7 @@ public slots:
 	void GetIdToSend(QString id);
 
 signals:
-	void PassDataToConversation(QString data);
+	void PassDataToConversation(QString data, QString id);
 	void PassIdToHostList(QString host);
 
 private:

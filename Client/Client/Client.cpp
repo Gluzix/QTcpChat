@@ -52,9 +52,11 @@ void Client::onReadyRead()
 
 	if (code == MESSAGE_SEND)
 	{
-		QString data;
-		stream >> data;
-		emit PassDataToConversation(data);
+		QVector<QString> dataVector;
+		stream >> dataVector;
+		QString id = dataVector[0];
+		QString data = dataVector[1];
+		emit PassDataToConversation(data, id);
 	}
 	else if (code == ID_SEND)
 	{
@@ -81,7 +83,7 @@ void Client::onReadyRead()
 		stream >> vect;
 		for (QVector<QString>::iterator it = vect.begin(); it < vect.end(); ++it)
 		{
-			emit PassDataToConversation(data);
+			//emit PassDataToConversation(data);
 		}
 	}
 }

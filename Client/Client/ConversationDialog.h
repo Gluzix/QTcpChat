@@ -6,15 +6,22 @@ class ConversationDialog : public QDialog
 	Q_OBJECT
 public:
 	ConversationDialog(QDialog *parent = Q_NULLPTR);
+	ConversationDialog(const ConversationDialog &dialog)
+	{
+		this->ui = dialog.ui;
+		this->conversationId = dialog.conversationId;
+	}
 	~ConversationDialog();
 
 	void SetConversationId(QString id)
 	{
 		conversationId = id;
 	}
-
-public slots:
-	void GetData(QString data);
+	void SetData(QString data);
+	QString GetId()
+	{
+		return conversationId;
+	}
 
 private slots:
 	void OnSendButtonClick();
