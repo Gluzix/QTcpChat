@@ -7,6 +7,7 @@ const int ID_SEND = 152;
 const int CONNECTED_HOSTS = 153;
 const int PENDING_MSG = 154;
 const int CONFIRM = 180;
+const int REMOVE_HOST = 254;
 
 template <class type>
 struct Message {
@@ -30,6 +31,7 @@ public slots:
 signals:
 	void PassDataToConversation(QString data, QString id);
 	void PassIdToHostList(QString host);
+	void SendIdToRemove(QString id);
 
 private:
 	void SendPacket(int code, QString data);

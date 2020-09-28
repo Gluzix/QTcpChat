@@ -22,6 +22,7 @@ public slots:
 	void GetName(QString name);
 	void AppendNewHostToList(QString host);
 	void GetDataAndId(QString data, QString id);
+	void RemoveId(QString id);
 
 private slots:
 	void OnTalkButtonClick();

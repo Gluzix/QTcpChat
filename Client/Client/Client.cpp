@@ -86,6 +86,12 @@ void Client::onReadyRead()
 			//emit PassDataToConversation(data);
 		}
 	}
+	else if (code == REMOVE_HOST)
+	{
+		QString data;
+		stream >> data;
+		emit SendIdToRemove(data);
+	}
 }
 
 void Client::GetMessage(QString message, QString id)

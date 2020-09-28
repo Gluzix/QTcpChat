@@ -10,6 +10,7 @@ const int ID_SEND = 152;
 const int CONNECTED_HOSTS = 153;
 const int PENDING_MSG = 154;
 const int CONFIRM = 180;
+const int REMOVE_HOST = 254;
 
 template<class type>
 struct Message {

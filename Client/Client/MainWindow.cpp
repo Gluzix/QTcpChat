@@ -14,6 +14,8 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(&client, SIGNAL(PassIdToHostList(QString)), this, SLOT(AppendNewHostToList(QString)));
 
 	connect(this, SIGNAL(PassIdToSend(QString)), &client, SLOT(GetIdToSend(QString)));
+
+	connect(&client, SIGNAL(SendIdToRemove(QString)), this, SLOT(RemoveId(QString)));
 }
 
 MainWindow::~MainWindow()
@@ -96,5 +98,29 @@ void MainWindow::GetDataAndId(QString data, QString id)
 		dialog->SetConversationId(id);
 		dialog->SetData(data);
 		dialogVector.push_back(dialog);
+	}
+}
+
+void MainWindow::RemoveId(QString id)
+{
+	for (int i = 0; i < ui.connectedListWidget->count(); ++i)
+	{
+		QStringList list = ui.connectedListWidget->item(i)->text().split(QRegExp("[(,)]"));
+
+		if (list[1].trimmed() == id)
+		{
+			QListWidgetItem* item = ui.connectedListWidget->item(i);
+			delete item;
+			break;
+		}
+	}
+
+	for (QVector<ConversationDialog*>::iterator it = dialogVector.begin(); it < dialogVector.end(); ++it)
+	{
+		if ((*it)->GetId() == id)
+		{
+			delete (*it);
+			dialogVector.removeOne((*it));
+		}
 	}
 }

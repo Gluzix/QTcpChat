@@ -150,13 +150,20 @@ void Server::OnSocketStateChanged(QAbstractSocket::SocketState socketState)
 	if (socketState == QAbstractSocket::UnconnectedState)
 	{
 		QTcpSocket* sender = static_cast<QTcpSocket*>(QObject::sender());
+		int id = 0;
 		for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
 		{
 			if (it->GetSocketHandler() == sender)
 			{
 				int dist = it - Hosts.begin();
+				id = it->GetId();
 				Hosts.removeAt(dist);
 			}
+		}
+		for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+		{
+			QTcpSocket* receiver = it->GetSocketHandler();
+			SendPacket(receiver, REMOVE_HOST, QString::number(id));
 		}
 	}
 }
