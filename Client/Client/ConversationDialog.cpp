@@ -26,7 +26,7 @@ void ConversationDialog::OnSendButtonClick()
 	QString message = ui.outcomingEdit->toPlainText();
 	ui.outcomingEdit->clear();
 	ui.incomingEdit->append(QString("<"+date+">You: " + message));
-	emit PassDataToSend(message);
+	emit PassDataToSend(message, conversationId);
 }
 
 void ConversationDialog::reject()

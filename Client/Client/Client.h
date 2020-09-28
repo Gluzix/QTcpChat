@@ -23,7 +23,7 @@ public:
 
 public slots:
 	void onReadyRead();
-	void GetMessage(QString message);
+	void GetMessage(QString message, QString id);
 	void SetUserName(QString name);
 	void GetIdToSend(QString id);
 
@@ -33,6 +33,7 @@ signals:
 
 private:
 	void SendPacket(int code, QString data);
+	void SendPacket(int code, QVector<QString> data);
 
 	QTcpSocket		Socket;
 	QString			Name;

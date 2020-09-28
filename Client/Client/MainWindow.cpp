@@ -6,7 +6,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui.setupUi(this);
 	connect(ui.talkButton, SIGNAL(clicked()), this, SLOT(OnTalkButtonClick()));
 	connect(&client, SIGNAL(PassDataToConversation(QString)), &conversationDialog, SLOT(GetData(QString)));
-	connect(&conversationDialog, SIGNAL(PassDataToSend(QString)), &client, SLOT(GetMessage(QString)));
+	connect(&conversationDialog, SIGNAL(PassDataToSend(QString, QString)), &client, SLOT(GetMessage(QString, QString)));
 
 	connect(&nameAccepterDialog, SIGNAL(SendExit()), this, SLOT(CloseApplication()));
 	connect(&nameAccepterDialog, SIGNAL(SendName(QString)), this, SLOT(GetName(QString)));
@@ -27,6 +27,7 @@ void MainWindow::OnTalkButtonClick()
 	QString text = ui.connectedListWidget->currentItem()->text();
 	QStringList id = text.split(QRegExp("[(,)]"));
 	emit PassIdToSend(id[1]);
+	conversationDialog.SetConversationId(id[1]);
 	conversationDialog.show();
 }
 
@@ -40,6 +41,7 @@ void MainWindow::CloseApplication()
 
 void MainWindow::GetName(QString name)
 {
+	ui.nameLabel->setText("Name: "+name);
 	client.SetUserName(name);
 	nameAccepterDialog.close();
 	this->setEnabled(true);
