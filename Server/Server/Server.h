@@ -2,22 +2,21 @@
 #include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
 #include <qlist.h>
-#include "Host.h"
+#include "Channel.h"
 
 const int NAME_SEND = 150;
 const int MESSAGE_SEND = 151;
 const int ID_SEND = 152;
-const int PENDING_MSG = 153;
+const int CONNECTED_HOSTS = 153;
+const int PENDING_MSG = 154;
 const int CONFIRM = 180;
+const int REMOVE_HOST = 254;
 
 template<class type>
 struct Message {
 	short code;
 	type data;
 };
-
-//QDataStream & operator << (QDataStream &stream, const PendingMessages& obj);
-//QDataStream & operator >> (QDataStream &stream, const PendingMessages& obj);
 
 class Server : public QObject
 {
@@ -31,9 +30,12 @@ public slots:
 	void OnReadyRead();
 private:
 	bool CheckIfIdIsAvailable(int id);
+	bool CheckIfChannelIdIsAvailable(int id);
 	void SendPacket(QTcpSocket *socket, int code, QString data);
+	void SendPacket(QTcpSocket *socket, int code, QVector<QString> &data);
 	void SendPacket(QTcpSocket *socket, int code);
 
 	QTcpServer  TcpServer;
 	QList<Host>  Hosts;
+	QList<Channel*> Channels;
 };

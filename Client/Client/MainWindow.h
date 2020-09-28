@@ -10,12 +10,19 @@ class MainWindow : public QMainWindow
 
 public:
 	MainWindow(QWidget *parent = Q_NULLPTR);
+	~MainWindow();
 	void ShowNameAccepter();
+
+
+signals:
+	void PassIdToSend(QString id);
 
 public slots:
 	void CloseApplication();
 	void GetName(QString name);
 	void AppendNewHostToList(QString host);
+	void GetDataAndId(QString data, QString id);
+	void RemoveId(QString id);
 
 private slots:
 	void OnTalkButtonClick();
@@ -24,5 +31,5 @@ private:
 	Ui::MainWindowClass ui;
 	Client client;
 	NameAccepter nameAccepterDialog;
-	ConversationDialog conversationDialog;
+	QVector<ConversationDialog*> dialogVector;
 };
