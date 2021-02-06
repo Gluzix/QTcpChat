@@ -24,9 +24,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <QtRcc Include="MainWindow.qrc">
-      <Filter>Resource Files</Filter>
-    </QtRcc>
     <QtMoc Include="MainWindow.h">
       <Filter>Header Files</Filter>
     </QtMoc>
@@ -38,9 +35,6 @@
     <ClCompile Include="MainWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NameAccepter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -49,9 +43,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="NameAccepter.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="Client.h">
       <Filter>Header Files</Filter>
     </QtMoc>
@@ -63,11 +54,17 @@
     <QtUic Include="MainWindow.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtUic Include="NameAccepter.ui">
-      <Filter>Form Files</Filter>
-    </QtUic>
     <QtUic Include="ConversationDialog.ui">
       <Filter>Source Files</Filter>
     </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="resources\ico_license.txt" />
+    <Text Include="resources\Open_Sans\LICENSE.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="resources\MainWindow.qrc">
+      <Filter>Resource Files</Filter>
+    </QtRcc>
   </ItemGroup>
 </Project>

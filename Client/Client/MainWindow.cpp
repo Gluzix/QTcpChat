@@ -1,21 +1,21 @@
 #include "MainWindow.h"
+#include <QFont>
+#include <QFontDatabase>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
-	connect(ui.talkButton, SIGNAL(clicked()), this, SLOT(OnTalkButtonClick()));
-
 	connect(&client, SIGNAL(PassDataToConversation(QString, QString)), this, SLOT(GetDataAndId(QString, QString)));
-
-	connect(&nameAccepterDialog, SIGNAL(SendExit()), this, SLOT(CloseApplication()));
-	connect(&nameAccepterDialog, SIGNAL(SendName(QString)), this, SLOT(GetName(QString)));
-
 	connect(&client, SIGNAL(PassIdToHostList(QString)), this, SLOT(AppendNewHostToList(QString)));
-
 	connect(this, SIGNAL(PassIdToSend(QString)), &client, SLOT(GetIdToSend(QString)));
-
 	connect(&client, SIGNAL(SendIdToRemove(QString)), this, SLOT(RemoveId(QString)));
+	connect(ui.okButton, SIGNAL(clicked()), this, SLOT(OnConfirmButtonClick()));
+
+	int id = QFontDatabase::addApplicationFont(":/fonts/Open_Sans/OpenSans-Regular.ttf");
+	QFont font("Open Sans", 12);
+	qApp->setFont(font);
+
 }
 
 MainWindow::~MainWindow()
@@ -23,55 +23,48 @@ MainWindow::~MainWindow()
 	qDeleteAll(dialogVector.begin(), dialogVector.end());
 }
 
-void MainWindow::ShowNameAccepter()
+void MainWindow::OnConfirmButtonClick()
 {
-	this->setEnabled(false);
-	nameAccepterDialog.show();
-}
-
-void MainWindow::OnTalkButtonClick()
-{
-	if (ui.connectedListWidget->currentRow() != -1)
+	QString name = ui.nameEdit->text();
+	if (!name.isEmpty())
 	{
-		QString text = ui.connectedListWidget->currentItem()->text();
-		QStringList id = text.split(QRegExp("[(,)]"));
-		emit PassIdToSend(id[1]);
-		bool bIfFound = false;
-		for (QVector<ConversationDialog*>::iterator it = dialogVector.begin(); it < dialogVector.end(); ++it)
-		{
-			if ((*it)->GetId() == id[1])
-			{			
-				bIfFound = true;
-				(*it)->show();
-				break;
-			}
-		}
-
-		if (!bIfFound)
-		{
-			ConversationDialog *dialog = new ConversationDialog();
-			connect(dialog, SIGNAL(PassDataToSend(QString, QString)), &client, SLOT(GetMessage(QString, QString)));
-			dialog->SetConversationId(id[1]);
-			dialog->show();
-			dialogVector.push_back(dialog);
-		}
+		client.SetUserName(name);
+		ui.infoLabel->setText("");
+		ui.connectedListWidget->setDisabled(false);
+		ui.okButton->setDisabled(true);
+		ui.nameEdit->setDisabled(true);
 	}
-}
+	else
+	{
+		ui.infoLabel->setText("Please don't set empty name");
+	}
 
-void MainWindow::CloseApplication()
-{
-	nameAccepterDialog.close();
-	this->setEnabled(true);
-	QMainWindow::close();
-	QApplication::quit();
-}
 
-void MainWindow::GetName(QString name)
-{
-	ui.nameLabel->setText("Name: "+name);
-	client.SetUserName(name);
-	nameAccepterDialog.close();
-	this->setEnabled(true);
+	//if (ui.connectedListWidget->currentRow() != -1)
+	//{
+	//	QString text = ui.connectedListWidget->currentItem()->text();
+	//	QStringList id = text.split(QRegExp("[(,)]"));
+	//	emit PassIdToSend(id[1]);
+	//	bool bIfFound = false;
+	//	for (QVector<ConversationDialog*>::iterator it = dialogVector.begin(); it < dialogVector.end(); ++it)
+	//	{
+	//		if ((*it)->GetId() == id[1])
+	//		{			
+	//			bIfFound = true;
+	//			(*it)->show();
+	//			break;
+	//		}
+	//	}
+
+	//	if (!bIfFound)
+	//	{
+	//		ConversationDialog *dialog = new ConversationDialog();
+	//		connect(dialog, SIGNAL(PassDataToSend(QString, QString)), &client, SLOT(GetMessage(QString, QString)));
+	//		dialog->SetConversationId(id[1]);
+	//		dialog->show();
+	//		dialogVector.push_back(dialog);
+	//	}
+	//}
 }
 
 void MainWindow::AppendNewHostToList(QString host)
