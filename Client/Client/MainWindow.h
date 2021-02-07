@@ -18,6 +18,7 @@ public slots:
 	void AppendNewHostToList(QString host);
 	void GetDataAndId(QString data, QString id);
 	void RemoveId(QString id);
+	void OpenDialog(QListWidgetItem *item);
 
 private slots:
 	void OnConfirmButtonClick();

@@ -2,6 +2,8 @@
     <qresource prefix="/icons">
         <file>avatar.svg</file>
         <file>checked.svg</file>
+        <file>speech-bubble.svg</file>
+        <file>speech-bubble.png</file>
     </qresource>
     <qresource prefix="/fonts">
         <file>Open_Sans/OpenSans-Bold.ttf</file>

@@ -11,11 +11,11 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(this, SIGNAL(PassIdToSend(QString)), &client, SLOT(GetIdToSend(QString)));
 	connect(&client, SIGNAL(SendIdToRemove(QString)), this, SLOT(RemoveId(QString)));
 	connect(ui.okButton, SIGNAL(clicked()), this, SLOT(OnConfirmButtonClick()));
+	connect(ui.connectedListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(OpenDialog(QListWidgetItem*)));
 
 	int id = QFontDatabase::addApplicationFont(":/fonts/Open_Sans/OpenSans-Regular.ttf");
 	QFont font("Open Sans", 12);
 	qApp->setFont(font);
-
 }
 
 MainWindow::~MainWindow()
@@ -38,33 +38,6 @@ void MainWindow::OnConfirmButtonClick()
 	{
 		ui.infoLabel->setText("Please don't set empty name");
 	}
-
-
-	//if (ui.connectedListWidget->currentRow() != -1)
-	//{
-	//	QString text = ui.connectedListWidget->currentItem()->text();
-	//	QStringList id = text.split(QRegExp("[(,)]"));
-	//	emit PassIdToSend(id[1]);
-	//	bool bIfFound = false;
-	//	for (QVector<ConversationDialog*>::iterator it = dialogVector.begin(); it < dialogVector.end(); ++it)
-	//	{
-	//		if ((*it)->GetId() == id[1])
-	//		{			
-	//			bIfFound = true;
-	//			(*it)->show();
-	//			break;
-	//		}
-	//	}
-
-	//	if (!bIfFound)
-	//	{
-	//		ConversationDialog *dialog = new ConversationDialog();
-	//		connect(dialog, SIGNAL(PassDataToSend(QString, QString)), &client, SLOT(GetMessage(QString, QString)));
-	//		dialog->SetConversationId(id[1]);
-	//		dialog->show();
-	//		dialogVector.push_back(dialog);
-	//	}
-	//}
 }
 
 void MainWindow::AppendNewHostToList(QString host)
@@ -115,5 +88,31 @@ void MainWindow::RemoveId(QString id)
 			delete (*it);
 			dialogVector.removeOne((*it));
 		}
+	}
+}
+
+void MainWindow::OpenDialog(QListWidgetItem* item)
+{
+	QString content = item->text();
+	QStringList id = content.split(QRegExp("[(,)]"));
+	emit PassIdToSend(id[1]);
+	bool bIfFound = false;
+	for (QVector<ConversationDialog*>::iterator it = dialogVector.begin(); it < dialogVector.end(); ++it)
+	{
+		if ((*it)->GetId() == id[1])
+		{			
+			bIfFound = true;
+			(*it)->show();
+			break;
+		}
+	}
+
+	if (!bIfFound)
+	{
+		ConversationDialog *dialog = new ConversationDialog();
+		connect(dialog, SIGNAL(PassDataToSend(QString, QString)), &client, SLOT(GetMessage(QString, QString)));
+		dialog->SetConversationId(id[1]);
+		dialog->show();
+		dialogVector.push_back(dialog);
 	}
 }
