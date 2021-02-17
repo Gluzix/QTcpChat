@@ -1,4 +1,3 @@
-#include <QDebug>
 #include <QtNetwork/QHostAddress>
 #include <QtNetwork/QAbstractSocket>
 #include <QtCore/QRandomGenerator>
@@ -39,17 +38,22 @@ QDataStream & operator >> (QDataStream &stream, Message<QVector<QString>>& obj)
 
 Server::Server()
 {
-	TcpServer.listen(QHostAddress::Any, 4242);
-	connect(&TcpServer, SIGNAL(newConnection()), this, SLOT(OnNewConnection()));
+	m_tcpServer.listen(QHostAddress::Any, 4242);
+	connect(&m_tcpServer, SIGNAL(newConnection()), this, SLOT(OnNewConnection()));
 }
 
 Server::~Server()
 {
+	for (QList<Channel*>::iterator it = m_channels.begin(); it < m_channels.end(); ++it)
+	{
+		delete* it;
+		*it = nullptr;
+	}
 }
 
 void Server::OnNewConnection()
 {
-	QTcpSocket *clientSocket = TcpServer.nextPendingConnection();
+	QTcpSocket *clientSocket = m_tcpServer.nextPendingConnection();
 
 	connect(clientSocket, SIGNAL(readyRead()), this, SLOT(OnReadyRead()));
 	connect(clientSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(OnSocketStateChanged(QAbstractSocket::SocketState)));
@@ -61,15 +65,15 @@ void Server::OnNewConnection()
 
 	Host host(clientSocket, "", number);
 
-	SendPacket(clientSocket, CONNECTED_HOSTS); //Sending to new host, all connected hosts
+	SendPacket(clientSocket, CONNECTED_HOSTS); //Sending to new host, all connected m_hosts
 
-	Hosts.push_back(host);
+	m_hosts.push_back(host);
 }
 
 bool Server::CheckIfIdIsAvailable(int id)
 {
 	bool retState = true;
-	for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+	for (QList<Host>::Iterator it = m_hosts.begin(); it < m_hosts.end(); ++it)
 	{
 		if (it->GetId() == id)
 		{
@@ -82,7 +86,7 @@ bool Server::CheckIfIdIsAvailable(int id)
 bool Server::CheckIfChannelIdIsAvailable(int id)
 {
 	bool retState = true;
-	for (QList<Channel*>::Iterator it = Channels.begin(); it < Channels.end(); ++it)
+	for (QList<Channel*>::Iterator it = m_channels.begin(); it < m_channels.end(); ++it)
 	{
 		if ((*it)->GetId() == id)
 		{
@@ -126,7 +130,7 @@ void Server::SendPacket(QTcpSocket *socket, int code)
 	{
 		Message<QVector<QString>> msg;
 		msg.code = code;
-		for (QList<Host>::iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+		for (QList<Host>::iterator it = m_hosts.begin(); it < m_hosts.end(); ++it)
 		{
 			QString data = it->GetName() + ":" + QString::number(it->GetId());
 			msg.data.push_back(data);
@@ -144,16 +148,27 @@ void Server::OnSocketStateChanged(QAbstractSocket::SocketState socketState)
 	{
 		QTcpSocket* sender = static_cast<QTcpSocket*>(QObject::sender());
 		int id = 0;
-		for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+
+		for (QList<Host>::Iterator it = m_hosts.begin(); it < m_hosts.end(); ++it)
 		{
 			if (it->GetSocketHandler() == sender)
 			{
-				int dist = it - Hosts.begin();
+				for (QList<Channel*>::Iterator iter = m_channels.begin(); iter < m_channels.end(); ++iter)
+				{
+					if ( (*iter)->CheckHost( &(*it) ) )
+					{
+						delete (*iter);
+						(*iter) = nullptr;
+						m_channels.removeOne((*iter));
+					}
+
+				}
+				int dist = it - m_hosts.begin();
 				id = it->GetId();
-				Hosts.removeAt(dist);
+				m_hosts.removeAt(dist);
 			}
 		}
-		for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+		for (QList<Host>::Iterator it = m_hosts.begin(); it < m_hosts.end(); ++it)
 		{
 			QTcpSocket* receiver = it->GetSocketHandler();
 			SendPacket(receiver, REMOVE_HOST, QString::number(id));
@@ -176,11 +191,11 @@ void Server::OnReadyRead()
 		stream >> vector;
 		int id = vector[0].toInt();
 
-		for (QList<Channel*>::iterator it = Channels.begin(); it < Channels.end(); ++it)
+		for (QList<Channel*>::iterator it = m_channels.begin(); it < m_channels.end(); ++it)
 		{
 			if ((*it)->CheckHost(sender, id))
 			{
-				for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+				for (QList<Host>::Iterator it = m_hosts.begin(); it < m_hosts.end(); ++it)
 				{
 					QTcpSocket *recv = it->GetSocketHandler();
 					if (recv == sender)
@@ -200,7 +215,7 @@ void Server::OnReadyRead()
 		stream >> message;
 		Message<QString> msgBack;
 		int number = 0;
-		for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+		for (QList<Host>::Iterator it = m_hosts.begin(); it < m_hosts.end(); ++it)
 		{
 			QTcpSocket *receiver = it->GetSocketHandler();
 			if (receiver == sender)
@@ -213,7 +228,7 @@ void Server::OnReadyRead()
 
 		if (number != 0)
 		{
-			for (QList<Host>::Iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+			for (QList<Host>::Iterator it = m_hosts.begin(); it < m_hosts.end(); ++it)
 			{
 				QTcpSocket* receiver = it->GetSocketHandler();
 				if (receiver != sender)
@@ -229,11 +244,11 @@ void Server::OnReadyRead()
 		QString target;
 		int id;
 		Host *receiver = nullptr;
-		Host *hostSender = nullptr;
+		Host *m_hostsender = nullptr;
 		stream >> target;
 		id = target.toInt();
 
-		for (QList<Host>::iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+		for (QList<Host>::iterator it = m_hosts.begin(); it < m_hosts.end(); ++it)
 		{
 			if (id == it->GetId())
 			{
@@ -242,7 +257,7 @@ void Server::OnReadyRead()
 			}
 		}
 
-		for (QList<Channel*>::iterator it = Channels.begin(); it < Channels.end(); ++it)
+		for (QList<Channel*>::iterator it = m_channels.begin(); it < m_channels.end(); ++it)
 		{
 			if ((*it)->CheckHost(receiver->GetSocketHandler(), sender))
 			{
@@ -260,16 +275,16 @@ void Server::OnReadyRead()
 			} while (!CheckIfChannelIdIsAvailable(number));
 			Channel *channel = new Channel(number);
 			channel->AddHosts(receiver);
-			for (QList<Host>::iterator it = Hosts.begin(); it < Hosts.end(); ++it)
+			for (QList<Host>::iterator it = m_hosts.begin(); it < m_hosts.end(); ++it)
 			{
 				if (it->GetSocketHandler() == sender)
 				{
-					hostSender = &(*it);
+					m_hostsender = &(*it);
 					break;
 				}
 			}
-			channel->AddHosts(hostSender);
-			Channels.push_back(channel);
+			channel->AddHosts(m_hostsender);
+			m_channels.push_back(channel);
 		}
 	}
 }

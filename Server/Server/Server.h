@@ -35,7 +35,7 @@ private:
 	void SendPacket(QTcpSocket *socket, int code, QVector<QString> &data);
 	void SendPacket(QTcpSocket *socket, int code);
 
-	QTcpServer  TcpServer;
-	QList<Host>  Hosts;
-	QList<Channel*> Channels;
+	QTcpServer  m_tcpServer;
+	QList<Host>  m_hosts;
+	QList<Channel*> m_channels;
 };

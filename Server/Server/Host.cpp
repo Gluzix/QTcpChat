@@ -2,50 +2,53 @@
 
 Host::Host() 
 {
-
+	m_id = 0;
+	m_name = "";
+	m_pSocketHandler = nullptr;
+	m_channel = 0;
 }
 
 Host::Host(const Host& obj)
 {
 	m_id = obj.m_id;
-	Name = obj.Name;
-	SocketHandler = obj.SocketHandler;
-	Channel = obj.Channel;
+	m_name = obj.m_name;
+	m_pSocketHandler = obj.m_pSocketHandler;
+	m_channel = obj.m_channel;
 }
 
-Host::Host(QTcpSocket* socketHandler, QString name, int id) :
-	SocketHandler(socketHandler),
-	Name(name),
-	Id(id),
-	Channel(0)
+Host::Host(QTcpSocket* pSocketHandler, QString name, int id) :
+	m_pSocketHandler(pSocketHandler),
+	m_name(name),
+	m_id(id),
+	m_channel(0)
 {}
 
 Host::~Host()
 {
-
+	m_pSocketHandler = nullptr;
 }
 
 QTcpSocket* Host::GetSocketHandler()
 {
-	return SocketHandler;
+	return m_pSocketHandler;
 }
 int Host::GetId()
 {
-	return Id;
+	return m_id;
 }
 QString Host::GetName()
 {
-	return Name;
+	return m_name;
 }
 void Host::SetName(QString name)
 {
-	Name = name;
+	m_name = name;
 }
 void Host::SetSocket(QTcpSocket* socket)
 {
-	SocketHandler = socket;
+	m_pSocketHandler = socket;
 }
 void Host::SetId(int id)
 {
-	Id = id;
+	m_id = id;
 }

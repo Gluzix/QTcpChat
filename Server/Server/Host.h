@@ -10,7 +10,7 @@ public:
 
 	Host();
 	Host(const Host& obj);
-	Host(QTcpSocket* socketHandler, QString name, int id);
+	Host(QTcpSocket* pSocketHandler, QString name, int id);
 	~Host();
 
 	QTcpSocket* GetSocketHandler();
