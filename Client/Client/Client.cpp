@@ -38,13 +38,13 @@ QDataStream & operator >> (QDataStream &stream, Message<QVector<QString>>& obj)
 
 Client::Client()
 {
-	Socket.connectToHost(QHostAddress("127.0.0.1"), 4242);
-	connect(&Socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+	m_socket.connectToHost(QHostAddress("127.0.0.1"), 4242);
+	connect(&m_socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 }
 
 void Client::onReadyRead()
 {
-	QByteArray data = Socket.readAll();
+	QByteArray data = m_socket.readAll();
 
 	QDataStream stream(data);
 	short code;
@@ -87,7 +87,7 @@ void Client::onReadyRead()
 
 void Client::GetMessage(QString message, QString id)
 {
-	QString messageToSend = Name + ": " + message;
+	QString messageToSend = m_name + ": " + message;
 	QVector<QString> vectorToSend;
 	vectorToSend.push_back(id);
 	vectorToSend.push_back(messageToSend);
@@ -96,7 +96,7 @@ void Client::GetMessage(QString message, QString id)
 
 void Client::SendPacket(int code, QString data)
 {
-	if (Socket.isWritable())
+	if (m_socket.isWritable())
 	{
 		Message<QString> msg;
 		msg.code = code;
@@ -104,13 +104,13 @@ void Client::SendPacket(int code, QString data)
 		QByteArray bytes;
 		QDataStream stream(&bytes, QIODevice::WriteOnly);
 		stream << msg;
-		Socket.write(bytes);
+		m_socket.write(bytes);
 	}
 }
 
 void Client::SendPacket(int code, QVector<QString> data)
 {
-	if (Socket.isWritable())
+	if (m_socket.isWritable())
 	{
 		Message<QVector<QString>> msg;
 		msg.code = code;
@@ -118,14 +118,14 @@ void Client::SendPacket(int code, QVector<QString> data)
 		QByteArray bytes;
 		QDataStream stream(&bytes, QIODevice::WriteOnly);
 		stream << msg;
-		Socket.write(bytes);
+		m_socket.write(bytes);
 	}
 }
 
 void Client::SetUserName(QString name)
 {
-	Name = name;
-	SendPacket(NAME_SEND, Name);
+	m_name = name;
+	SendPacket(NAME_SEND, m_name);
 }
 
 void Client::GetIdToSend(QString id)

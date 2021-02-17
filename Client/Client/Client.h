@@ -37,8 +37,8 @@ private:
 	void SendPacket(int code, QString data);
 	void SendPacket(int code, QVector<QString> data);
 
-	QTcpSocket		Socket;
-	QString			Name;
-	QVector<int>	connectedIds;
+	QTcpSocket		m_socket;
+	QString			m_name;
+	QVector<int>	m_connectedIds;
 };
 

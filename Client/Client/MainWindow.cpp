@@ -6,10 +6,10 @@ MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
-	connect(&client, SIGNAL(PassDataToConversation(QString, QString)), this, SLOT(GetDataAndId(QString, QString)));
-	connect(&client, SIGNAL(PassIdToHostList(QString)), this, SLOT(AppendNewHostToList(QString)));
-	connect(this, SIGNAL(PassIdToSend(QString)), &client, SLOT(GetIdToSend(QString)));
-	connect(&client, SIGNAL(SendIdToRemove(QString)), this, SLOT(RemoveId(QString)));
+	connect(&m_client, SIGNAL(PassDataToConversation(QString, QString)), this, SLOT(GetDataAndId(QString, QString)));
+	connect(&m_client, SIGNAL(PassIdToHostList(QString)), this, SLOT(AppendNewHostToList(QString)));
+	connect(this, SIGNAL(PassIdToSend(QString)), &m_client, SLOT(GetIdToSend(QString)));
+	connect(&m_client, SIGNAL(SendIdToRemove(QString)), this, SLOT(RemoveId(QString)));
 	connect(ui.okButton, SIGNAL(clicked()), this, SLOT(OnConfirmButtonClick()));
 	connect(ui.connectedListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(OpenDialog(QListWidgetItem*)));
 
@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-	qDeleteAll(dialogVector.begin(), dialogVector.end());
+	qDeleteAll(m_pDialogVector.begin(), m_pDialogVector.end());
 }
 
 void MainWindow::OnConfirmButtonClick()
@@ -28,7 +28,7 @@ void MainWindow::OnConfirmButtonClick()
 	QString name = ui.nameEdit->text();
 	if (!name.isEmpty())
 	{
-		client.SetUserName(name);
+		m_client.SetUserName(name);
 		ui.infoLabel->setText("");
 		ui.connectedListWidget->setDisabled(false);
 		ui.okButton->setDisabled(true);
@@ -48,7 +48,7 @@ void MainWindow::AppendNewHostToList(QString host)
 void MainWindow::GetDataAndId(QString data, QString id)
 {
 	bool bIfFound = false;
-	for (QVector<ConversationDialog*>::iterator it = dialogVector.begin(); it < dialogVector.end(); ++it)
+	for (QVector<ConversationDialog*>::iterator it = m_pDialogVector.begin(); it < m_pDialogVector.end(); ++it)
 	{
 		if ((*it)->GetId() == id)
 		{
@@ -60,10 +60,10 @@ void MainWindow::GetDataAndId(QString data, QString id)
 	if (!bIfFound)
 	{
 		ConversationDialog *dialog = new ConversationDialog();
-		connect(dialog, SIGNAL(PassDataToSend(QString, QString)), &client, SLOT(GetMessage(QString, QString)));
+		connect(dialog, SIGNAL(PassDataToSend(QString, QString)), &m_client, SLOT(GetMessage(QString, QString)));
 		dialog->SetConversationId(id);
 		dialog->SetData(data);
-		dialogVector.push_back(dialog);
+		m_pDialogVector.push_back(dialog);
 	}
 }
 
@@ -81,12 +81,12 @@ void MainWindow::RemoveId(QString id)
 		}
 	}
 
-	for (QVector<ConversationDialog*>::iterator it = dialogVector.begin(); it < dialogVector.end(); ++it)
+	for (QVector<ConversationDialog*>::iterator it = m_pDialogVector.begin(); it < m_pDialogVector.end(); ++it)
 	{
 		if ((*it)->GetId() == id)
 		{
 			delete (*it);
-			dialogVector.removeOne((*it));
+			m_pDialogVector.removeOne((*it));
 		}
 	}
 }
@@ -97,7 +97,7 @@ void MainWindow::OpenDialog(QListWidgetItem* item)
 	QStringList id = content.split(QRegExp("[(,)]"));
 	emit PassIdToSend(id[1]);
 	bool bIfFound = false;
-	for (QVector<ConversationDialog*>::iterator it = dialogVector.begin(); it < dialogVector.end(); ++it)
+	for (QVector<ConversationDialog*>::iterator it = m_pDialogVector.begin(); it < m_pDialogVector.end(); ++it)
 	{
 		if ((*it)->GetId() == id[1])
 		{			
@@ -110,9 +110,9 @@ void MainWindow::OpenDialog(QListWidgetItem* item)
 	if (!bIfFound)
 	{
 		ConversationDialog *dialog = new ConversationDialog();
-		connect(dialog, SIGNAL(PassDataToSend(QString, QString)), &client, SLOT(GetMessage(QString, QString)));
+		connect(dialog, SIGNAL(PassDataToSend(QString, QString)), &m_client, SLOT(GetMessage(QString, QString)));
 		dialog->SetConversationId(id[1]);
 		dialog->show();
-		dialogVector.push_back(dialog);
+		m_pDialogVector.push_back(dialog);
 	}
 }
