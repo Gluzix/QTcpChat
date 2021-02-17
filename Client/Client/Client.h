@@ -5,7 +5,7 @@ const int NAME_SEND = 150;
 const int MESSAGE_SEND = 151;
 const int ID_SEND = 152;
 const int CONNECTED_HOSTS = 153;
-const int PENDING_MSG = 154;
+const int ADD_CHANNEL = 154;
 const int CONFIRM = 180;
 const int REMOVE_HOST = 254;
 
@@ -37,8 +37,8 @@ private:
 	void SendPacket(int code, QString data);
 	void SendPacket(int code, QVector<QString> data);
 
-	QTcpSocket		Socket;
-	QString			Name;
-	QVector<int>	connectedIds;
+	QTcpSocket		m_socket;
+	QString			m_name;
+	QVector<int>	m_connectedIds;
 };
 

@@ -25,6 +25,6 @@ private slots:
 
 private:
 	Ui::MainWindowClass ui;
-	Client client;
-	QVector<ConversationDialog*> dialogVector;
+	Client m_client;
+	QVector<ConversationDialog*> m_pDialogVector;
 };
