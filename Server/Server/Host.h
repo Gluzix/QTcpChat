@@ -7,52 +7,24 @@ class Host : public QObject
 {
 	Q_OBJECT
 public:
-	Host::Host() {
 
-	}
-	Host::Host(const Host &obj)
-	{
-		Id = obj.Id;
-		Name = obj.Name;
-		SocketHandler = obj.SocketHandler;
-		Channel = obj.Channel;
-	}
-	Host::Host(QTcpSocket* socketHandler, QString name, int id):
-		SocketHandler(socketHandler),
-		Name(name),
-		Id(id),
-		Channel(0) {}
-	Host::~Host()
-	{
-	}
-	QTcpSocket *GetSocketHandler()
-	{
-		return SocketHandler;
-	}
-	int GetId()
-	{
-		return Id;
-	}
-	QString GetName()
-	{
-		return Name;
-	}
-	void SetName(QString name)
-	{
-		Name = name;
-	}
-	void SetSocket(QTcpSocket *socket)
-	{
-		SocketHandler = socket;
-	}
-	void SetId(int id)
-	{
-		Id = id;
-	}
+	Host();
+	Host(const Host& obj);
+	Host(QTcpSocket* socketHandler, QString name, int id);
+	~Host();
+
+	QTcpSocket* GetSocketHandler();
+	int GetId();
+	QString GetName();
+
+	void SetName(QString name);
+	void SetSocket(QTcpSocket* socket);
+	void SetId(int id);
+
 private:
-	int Id;
-	QString Name;
-	QTcpSocket *SocketHandler;
-	int Channel;
+	int m_id;
+	QString m_name;
+	QTcpSocket *m_pSocketHandler;
+	int m_channel;
 };
 

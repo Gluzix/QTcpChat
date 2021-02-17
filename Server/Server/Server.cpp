@@ -43,15 +43,9 @@ Server::Server()
 	connect(&TcpServer, SIGNAL(newConnection()), this, SLOT(OnNewConnection()));
 }
 
-// I need channel or conversation handler in order to store messages for 2 - hosts.
-// I need to handle pending messages, for example when one user will write to another, but
-// the receiver has not opened the conversation window .
-// for example i could store conversation pointers in a vector for every host. 
-// and when opening conversation with some guy, just ask server for this vector.
-// Conversation class:
-// -Host1 pointer
-// -Host2 pointer
-// -Vector of conversation
+Server::~Server()
+{
+}
 
 void Server::OnNewConnection()
 {
@@ -68,7 +62,6 @@ void Server::OnNewConnection()
 	Host host(clientSocket, "", number);
 
 	SendPacket(clientSocket, CONNECTED_HOSTS); //Sending to new host, all connected hosts
-
 
 	Hosts.push_back(host);
 }
@@ -230,13 +223,13 @@ void Server::OnReadyRead()
 			}
 		}
 	}
-	else if (code == PENDING_MSG)
+	else if (code == ADD_CHANNEL)
 	{
 		bool bIfExist = false;
 		QString target;
 		int id;
-		Host *receiver;
-		Host *hostSender;
+		Host *receiver = nullptr;
+		Host *hostSender = nullptr;
 		stream >> target;
 		id = target.toInt();
 
@@ -254,12 +247,6 @@ void Server::OnReadyRead()
 			if ((*it)->CheckHost(receiver->GetSocketHandler(), sender))
 			{
 				bIfExist = true;
-				//QTcpSocket *receiver = (*it)->GetReceiver(sender);
-				//if (!(*it)->GetMessages().isEmpty())
-				//{
-				//	SendPacket(receiver, PENDING_MSG, (*it)->GetMessages());
-				//	break;
-				//}
 				break;
 			}
 		}
@@ -287,6 +274,3 @@ void Server::OnReadyRead()
 	}
 }
 
-Server::~Server()
-{
-}
